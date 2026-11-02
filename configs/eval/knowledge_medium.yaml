@@ -3,8 +3,8 @@
 # Knowledge benchmark — balanced sample sizes for meaningful per-task scores
 # without running full test sets.
 #
-#   TriviaQA   500 examples  (vs 11 313 full)
-#   ARC-Easy   500 examples  (vs  2 376 full)
+#   TriviaQA   200 examples  (vs 11 313 full)
+#   ARC-Easy   200 examples  (vs  2 376 full)
 #   MMLU       10 per subject × 58 subjects = 580 examples  (vs 5 800 full)
 #
 # Run with:
@@ -19,7 +19,7 @@ dtype: float16
 max_length: 4096
 
 # ── Hardware ──────────────────────────────────────────────────────────────────
-device: mps
+device: auto
 
 # ── Tasks (per-task limits override the global limit) ─────────────────────────
 tasks:

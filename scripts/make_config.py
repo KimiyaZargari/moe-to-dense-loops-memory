@@ -54,7 +54,19 @@ def main() -> None:
     sizes = cfg.pop("sizes", {})
     if args.size not in sizes:
         sys.exit(f"error: size '{args.size}' not in template. Available: {', '.join(sizes)}")
-    cfg["limit"] = sizes[args.size]
+    size = sizes[args.size]
+    if isinstance(size, dict):
+        # per-task limits: {task_name: limit}; tasks not listed run the full set
+        names = {t["name"] for t in cfg["tasks"]}
+        unknown = set(size) - names
+        if unknown:
+            sys.exit(f"error: size '{args.size}' names unknown tasks: {', '.join(sorted(unknown))}")
+        for t in cfg["tasks"]:
+            if size.get(t["name"]) is not None:
+                t["limit"] = size[t["name"]]
+        cfg["limit"] = None
+    else:
+        cfg["limit"] = size
 
     if args.model:
         cfg["model"] = args.model

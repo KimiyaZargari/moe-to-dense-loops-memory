@@ -25,7 +25,7 @@ python scripts/smoke_test.py
 # create a runnable config from a template (written to configs/generated/, git-ignored)
 python scripts/make_config.py --list
 python scripts/make_config.py knowledge --size quick --name baseline_knowledge_quick
-
+python scripts/make_config.py reasoning --size quick --name baseline_reasoning_quick
 # inspect the resolved config without loading the model
 python scripts/run_eval.py --config configs/generated/baseline_knowledge_quick.yaml --dry-run
 

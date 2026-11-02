@@ -2,12 +2,13 @@
 #   python scripts/make_config.py knowledge --size quick --name baseline_knowledge_quick
 #
 # `limit` is applied per leaf task by lm_eval, so for mmlu_continuation it is
-# per subject (57 subjects x limit examples).
+# per subject (57 subjects x limit examples). A size can be a single number
+# (global limit) or a {task: limit} map (per-task limits).
 
 model: ibm-granite/granite-3.1-1b-a400m-base
 dtype: float16
 max_length: 4096
-device: mps             # cpu | mps | cuda | auto
+device: auto            # cpu | mps | cuda | auto
 
 tasks:
   - name: triviaqa
@@ -26,5 +27,5 @@ output_dir: results
 # null = full test set.
 sizes:
   quick: 10
-  medium: 50
+  medium: {triviaqa: 200, arc_easy: 200, mmlu_continuation: 10}
   full: null
