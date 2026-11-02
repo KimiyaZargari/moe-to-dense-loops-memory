@@ -1,0 +1,20 @@
+model: ibm-granite/granite-3.1-1b-a400m-base
+dtype: float16
+max_length: 4096
+device: cuda
+tasks:
+- name: triviaqa
+  num_fewshot: 5
+  limit: null
+- name: arc_easy
+  num_fewshot: 25
+  limit: null
+- name: mmlu_continuation
+  num_fewshot: 5
+  limit: null
+batch_size: 4
+seed: 0
+log_samples: true
+output_dir: results
+limit: 50
+run_name: baseline_knowledge_medium
