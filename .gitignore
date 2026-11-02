@@ -1,0 +1,17 @@
+__pycache__/
+.DS_Store
+*.pyc
+.venv/
+.vscode/
+# model checkpoints (compressed / converted models)
+models/
+# results: commit only deliberately named stage runs; never the large per-sample files
+results/*
+!results/baseline_*
+!results/compressed_*
+!results/loop_*
+!results/memory_*
+results/**/samples_*.jsonl
+
+# generated configs (made from configs/templates/ by scripts/make_config.py)
+configs/generated/

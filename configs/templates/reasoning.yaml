@@ -1,0 +1,27 @@
+# Template: reasoning benchmarks (committed). Generate a runnable config with:
+#   python scripts/make_config.py reasoning --size quick --name baseline_reasoning_quick
+
+model: ibm-granite/granite-3.1-1b-a400m-base
+dtype: float16
+max_length: 4096
+device: mps             # cpu | mps | cuda | auto
+
+tasks:
+  - name: gsm8k
+    num_fewshot: 5
+  - name: hellaswag
+    num_fewshot: 10
+  - name: winogrande
+    num_fewshot: 5
+
+batch_size: 4
+seed: 0
+log_samples: true
+output_dir: results
+
+# Consumed by make_config.py (not written to the generated config).
+# null = full test set.
+sizes:
+  quick: 20
+  medium: 200
+  full: null

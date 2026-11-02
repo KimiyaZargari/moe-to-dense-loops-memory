@@ -1,0 +1,38 @@
+# configs/granite_gsm8k_n200.yaml
+#
+# Reproduces exactly:
+#   lm_eval --model hf \
+#     --model_args pretrained=ibm-granite/granite-3.1-1b-a400m-base,dtype=float32,max_length=4096 \
+#     --device cpu --tasks gsm8k --num_fewshot 5 --batch_size 4 \
+#     --limit 200 --log_samples --output_path results/granite_base_test --seed 0
+#
+# Run with:
+#   python run_eval.py --config configs/granite_gsm8k_n200.yaml
+#
+# To evaluate a local model folder instead, add --model ./path/to/model on the CLI.
+# To run the full test set, add --limit 0 on the CLI.
+
+# ── Model ─────────────────────────────────────────────────────────────────────
+model: ibm-granite/granite-3.1-1b-a400m-base
+dtype: float16          
+max_length: 4096
+
+# ── Hardware ──────────────────────────────────────────────────────────────────
+device: mps             # options: cpu | mps | cuda | auto
+
+# ── Tasks ─────────────────────────────────────────────────────────────────────
+# Each task can have its own num_fewshot. The CLI --num-fewshot flag overrides all.
+tasks:
+  - name: gsm8k
+    num_fewshot: 5
+
+# ── Run settings ──────────────────────────────────────────────────────────────
+batch_size: 4
+limit: 500              # set to null (or pass --limit 0) for the full test set
+seed: 0
+log_samples: true       # write per-sample outputs to samples_gsm8k.jsonl
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output_dir: results
+run_name: granite_base_test
+# Each run creates: results/granite_base_test_<UTC-timestamp>/

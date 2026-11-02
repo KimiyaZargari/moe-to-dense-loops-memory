@@ -1,0 +1,30 @@
+# Template: knowledge benchmarks (committed). Generate a runnable config with:
+#   python scripts/make_config.py knowledge --size quick --name baseline_knowledge_quick
+#
+# `limit` is applied per leaf task by lm_eval, so for mmlu_continuation it is
+# per subject (57 subjects x limit examples).
+
+model: ibm-granite/granite-3.1-1b-a400m-base
+dtype: float16
+max_length: 4096
+device: mps             # cpu | mps | cuda | auto
+
+tasks:
+  - name: triviaqa
+    num_fewshot: 5
+  - name: arc_easy
+    num_fewshot: 25
+  - name: mmlu_continuation
+    num_fewshot: 5
+
+batch_size: 4
+seed: 0
+log_samples: true
+output_dir: results
+
+# Consumed by make_config.py (not written to the generated config).
+# null = full test set.
+sizes:
+  quick: 10
+  medium: 50
+  full: null
