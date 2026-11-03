@@ -19,14 +19,21 @@ Tasks are categorised as:
 MMLU per-subject rows are indented under the mmlu aggregate row. A
 "(subject mean)" row gives the unweighted mean accuracy over the subjects
 (n = number of subjects); the aggregate row is lm_eval's sample-weighted score.
+The table is also written to results/summary.txt (override with --output); that
+file is git-ignored by the `results/*` rule.
+
 By default only the MMLU summary rows are shown; pass --show_all_mmlu to also
 show the sub-group (stem/other/...) and per-subject rows.
 """
 
 import argparse
+import contextlib
+import io
 import json
 import sys
 from pathlib import Path
+
+DEFAULT_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "summary.txt"
 
 # ── Task categorisation ────────────────────────────────────────────────────────
 
@@ -362,6 +369,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show MMLU sub-group and per-subject rows; by default only the summary rows are shown.",
     )
+    p.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="File the table is also written to (default: results/summary.txt, git-ignored).",
+    )
     return p
 
 
@@ -389,7 +402,15 @@ def main() -> None:
         print("No valid run directories found.", file=sys.stderr)
         sys.exit(1)
 
-    print_table(runs, show_all_mmlu=args.show_all_mmlu)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        print_table(runs, show_all_mmlu=args.show_all_mmlu)
+    table = buf.getvalue()
+    print(table, end="")
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(table)
+    print(f"  saved to {args.output}")
 
 
 if __name__ == "__main__":
