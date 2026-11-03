@@ -3,18 +3,18 @@ dtype: float16
 max_length: 4096
 device: cuda
 tasks:
-- name: triviaqa
+- name: gsm8k
   num_fewshot: 5
   limit: null
-- name: arc_easy
-  num_fewshot: 25
-  limit: null
-- name: mmlu_continuation
+- name: hellaswag
+  num_fewshot: 10
+  limit: 1000
+- name: winogrande
   num_fewshot: 5
   limit: null
 batch_size: 4
 seed: 0
 log_samples: true
 output_dir: results
-limit: 10
-run_name: baseline_knowledge_quick
+limit: null
+run_name: baseline_reasoning_medium

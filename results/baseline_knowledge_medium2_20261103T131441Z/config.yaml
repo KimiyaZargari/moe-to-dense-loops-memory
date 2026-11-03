@@ -5,16 +5,16 @@ device: cuda
 tasks:
 - name: triviaqa
   num_fewshot: 5
-  limit: null
+  limit: 1000
 - name: arc_easy
   num_fewshot: 25
-  limit: null
+  limit: 1000
 - name: mmlu_continuation
   num_fewshot: 5
-  limit: null
+  limit: 30
 batch_size: 4
 seed: 0
 log_samples: true
 output_dir: results
-limit: 50
-run_name: baseline_knowledge_medium
+limit: null
+run_name: baseline_knowledge_medium2
