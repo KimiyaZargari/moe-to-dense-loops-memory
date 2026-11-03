@@ -27,5 +27,9 @@ output_dir: results
 # null = full test set.
 sizes:
   quick: 10
-  medium: {triviaqa: 200, arc_easy: 200, mmlu_continuation: 10}
+  # medium: std. error = sqrt(p(1-p)/n); 95% CI is about 2x that.
+  #   triviaqa, arc_easy: n=1000 -> SE ~1.6pp at 50% acc (CI ~ +/-3pp)
+  #   mmlu_continuation: per subject, 30 x 57 subjects = ~1710 examples
+  #     -> SE ~1.1pp at ~30% acc (CI ~ +/-2pp)
+  medium: {triviaqa: 1000, arc_easy: 1000, mmlu_continuation: 30}
   full: null

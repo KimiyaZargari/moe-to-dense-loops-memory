@@ -23,5 +23,9 @@ output_dir: results
 # null = full test set.
 sizes:
   quick: 20
-  medium: 200
+  # medium: std. error = sqrt(p(1-p)/n); 95% CI is about 2x that. Tasks set to null run in full.
+  #   gsm8k: n=1000 of 1319 -> SE ~1.3pp at ~22% acc (generative, so capped for cost)
+  #   hellaswag: n=1000 of 10042 -> SE ~1.5pp at ~60% acc_norm
+  #   winogrande: full 1267 -> SE ~1.4pp at ~60% acc
+  medium: {gsm8k: null, hellaswag: 1000, winogrande: null}
   full: null
