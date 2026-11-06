@@ -26,6 +26,8 @@ def resolve_device(device: str) -> str:
     Translate 'auto' to the best backend available on this machine:
       CUDA (NVIDIA) > MPS (Apple Silicon) > CPU
     """
+    if device == "gpu":
+        device = "cuda"
     if device != "auto":
         return device
     try:
@@ -52,7 +54,7 @@ def device_display_name(device: str) -> str:
             return "Apple MPS (Metal Performance Shaders)"
     except Exception:
         pass
-    return "CPU"
+    return "CPU" if device == "cpu" else device
 
 
 # ── git helpers ───────────────────────────────────────────────────────────────

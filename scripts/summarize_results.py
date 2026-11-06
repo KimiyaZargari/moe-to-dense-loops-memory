@@ -16,14 +16,24 @@ Tasks are categorised as:
   KNOWLEDGE  triviaqa, arc_easy, arc_challenge, mmlu_*, ...
   OTHER      anything that does not match either category
 
-MMLU per-subject rows are indented under the mmlu aggregate row.
-Pass --no-subjects to hide individual MMLU subject rows.
+MMLU per-subject rows are indented under the mmlu aggregate row. A
+"(subject mean)" row gives the unweighted mean accuracy over the subjects
+(n = number of subjects); the aggregate row is lm_eval's sample-weighted score.
+The table is also written to results/summary.txt (override with --output); that
+file is git-ignored by the `results/*` rule.
+
+By default only the MMLU summary rows are shown; pass --show_all_mmlu to also
+show the sub-group (stem/other/...) and per-subject rows.
 """
 
 import argparse
+import contextlib
+import io
 import json
 import sys
 from pathlib import Path
+
+DEFAULT_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "summary.txt"
 
 # ── Task categorisation ────────────────────────────────────────────────────────
 
@@ -86,7 +96,8 @@ def _chance_for(task: str) -> float | None:
 def _is_mmlu_subject(task: str) -> bool:
     """True for leaf MMLU tasks (e.g. mmlu_abstract_algebra_continuation)."""
     t = task.lower()
-    return t.startswith("mmlu_") and t not in (
+    return t.startswith("mmlu_") and "::" not in t and t not in (
+        "mmlu_continuation",
         "mmlu_stem",
         "mmlu_other",
         "mmlu_humanities",
@@ -101,7 +112,7 @@ def _is_mmlu_subject(task: str) -> bool:
 def _is_mmlu_subgroup(task: str) -> bool:
     """True for MMLU sub-category aggregates (stem / other / etc.)."""
     t = task.lower()
-    return t in (
+    return t.startswith("mmlu_continuation::") or t in (
         "mmlu_stem",
         "mmlu_other",
         "mmlu_humanities",
@@ -213,7 +224,17 @@ def _n_eff(run: dict, task: str) -> str:
     return str(sl) if sl is not None else "?"
 
 
-def print_table(runs: list[dict], show_subjects: bool = True) -> None:
+def _mmlu_subject_mean(run: dict) -> tuple[float, int] | None:
+    """Unweighted mean accuracy over the MMLU subject tasks in a run, and the subject count."""
+    accs = [
+        m["acc,none"]
+        for t, m in run.get("raw", {}).get("results", {}).items()
+        if _is_mmlu_subject(t) and isinstance(m.get("acc,none"), float)
+    ]
+    return (sum(accs) / len(accs), len(accs)) if accs else None
+
+
+def print_table(runs: list[dict], show_all_mmlu: bool = False) -> None:
     if not runs:
         print("No runs to compare.")
         return
@@ -244,7 +265,7 @@ def print_table(runs: list[dict], show_subjects: bool = True) -> None:
         is_mmlu_subgroup = _is_mmlu_subgroup(task)
         is_subject = _is_mmlu_subject(task)
 
-        if not show_subjects and is_subject:
+        if not show_all_mmlu and (is_subject or is_mmlu_subgroup):
             continue
 
         if cat != current_cat:
@@ -284,6 +305,12 @@ def print_table(runs: list[dict], show_subjects: bool = True) -> None:
                 else:
                     row_cells.append("  —  ")
             rows.append(("DATA", display_task, metric, row_cells))
+
+        if task in ("mmlu", "mmlu_continuation"):
+            means = [_mmlu_subject_mean(r) for r in runs]
+            if any(means):
+                cells_avg = [f"{m[0]:.4f} (n={m[1]})" if m else "  —  " for m in means]
+                rows.append(("DATA", f"{task} (subject mean)", "acc,none", cells_avg))
 
     # Compute column widths.
     task_col_w = max((len(r[1]) for r in rows if r[0] == "DATA"), default=30)
@@ -338,9 +365,15 @@ def build_parser() -> argparse.ArgumentParser:
         "directly, its subdirectories are treated as individual run folders.",
     )
     p.add_argument(
-        "--no-subjects",
+        "--show_all_mmlu",
         action="store_true",
-        help="Hide per-subject MMLU rows; show only the aggregate.",
+        help="Show MMLU sub-group and per-subject rows; by default only the summary rows are shown.",
+    )
+    p.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="File the table is also written to (default: results/summary.txt, git-ignored).",
     )
     return p
 
@@ -369,7 +402,15 @@ def main() -> None:
         print("No valid run directories found.", file=sys.stderr)
         sys.exit(1)
 
-    print_table(runs, show_subjects=not args.no_subjects)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        print_table(runs, show_all_mmlu=args.show_all_mmlu)
+    table = buf.getvalue()
+    print(table, end="")
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(table)
+    print(f"  saved to {args.output}")
 
 
 if __name__ == "__main__":
