@@ -1,7 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-device = "mps" if torch.backends.mps.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 model_path = "ibm-granite/granite-3.1-1b-a400m-base"
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 # drop device_map if running on CPU
