@@ -24,7 +24,7 @@ import yaml  # PyYAML — install via: pip install pyyaml
 def resolve_device(device: str) -> str:
     """
     Translate 'auto' to the best backend available on this machine:
-      CUDA (NVIDIA) > MPS (Apple Silicon) > CPU
+      CUDA > CPU
     """
     if device == "gpu":
         device = "cuda"
@@ -35,8 +35,6 @@ def resolve_device(device: str) -> str:
 
         if torch.cuda.is_available():
             return "cuda"
-        if torch.backends.mps.is_available():
-            return "mps"
     except ImportError:
         pass
     return "cpu"
@@ -50,8 +48,6 @@ def device_display_name(device: str) -> str:
         if device.startswith("cuda"):
             idx = int(device.split(":")[1]) if ":" in device else 0
             return torch.cuda.get_device_name(idx)
-        if device == "mps":
-            return "Apple MPS (Metal Performance Shaders)"
     except Exception:
         pass
     return "CPU" if device == "cpu" else device
@@ -237,8 +233,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     g_model.add_argument(
         "--device",
-        choices=["cpu", "mps", "cuda", "auto"],
-        help="PyTorch compute device. 'auto' picks cuda > mps > cpu.",
+        choices=["cpu", "cuda", "auto"],
+        help="PyTorch compute device. 'auto' picks cuda > cpu.",
     )
 
     # ── tasks ─────────────────────────────────────────────────────────────────
@@ -469,13 +465,6 @@ def main() -> None:
         "dtype": cfg["dtype"],
         "max_length": cfg["max_length"],
     }
-
-    # lm_eval's HFLM backend defaults to device_map={"": "mps"} when device=mps,
-    # which tells from_pretrained to load weights directly to MPS and segfaults.
-    # Passing any explicit device_map triggers the else-branch in _get_accelerate_args,
-    # which sets device_map=None so the model loads to CPU, then .to("mps") is called.
-    if cfg["device"] == "mps":
-        model_args["device_map"] = "cpu"
 
     task_names = [t["name"] for t in cfg["tasks"]]
     fewshot_values = [
