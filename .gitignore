@@ -8,7 +8,8 @@ models/
 # results: commit only deliberately named stage runs; never the large per-sample files
 results/*
 !results/baseline_*
-!results/compressed_*
+!results/distill_*
+results/distill_pilot*
 !results/loop_*
 !results/memory_*
 results/**/samples_*.jsonl
